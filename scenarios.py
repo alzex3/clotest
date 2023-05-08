@@ -1,15 +1,14 @@
+from bs4 import BeautifulSoup
 from httpx import Client
 
-from bs4 import BeautifulSoup
-
-from api.tempmail import TempMailAPI
 from api.cloudike import CloudikeAPI
+from api.tempmail import TempMailAPI
 
 
-class Scenario():
+class Scenario:
     def __init__(self, client: Client):
         self.client = client
-    
+
     def parse_link(self, html: str, keyword: str):
         soup = BeautifulSoup(html, "html.parser")
 
@@ -22,7 +21,7 @@ class Scenario():
     def create_company(self, host: str) -> str:
         tempmail = TempMailAPI(self.client)
         mailbox = tempmail.create_mailbox()
-        
+
         cloudike = CloudikeAPI(host, self.client)
         company = cloudike.create_company(email=mailbox.address)
 
@@ -37,7 +36,7 @@ class Scenario():
             "company_id": company["company_id"],
             "company_admin_email": company["email"],
             "company_admin_password": company["password"],
-            "confirm_link": confirm_link
+            "confirm_link": confirm_link,
         }
 
         return result

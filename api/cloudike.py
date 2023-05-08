@@ -1,7 +1,8 @@
-from time import time
 import random
-from httpx import Auth, Client
+from time import time
+
 from environs import Env
+from httpx import Auth, Client
 
 env = Env()
 
@@ -9,18 +10,18 @@ CLOUDIKE_HOST_ENVS = {
     "frontend-dev": {
         "api_url": env("CLOUDIKE_FRONTEND_DEV_API_URL"),
         "admin_login": env("CLOUDIKE_FRONTEND_DEV_ADMIN_LOGIN"),
-        "admin_password": env("CLOUDIKE_FRONTEND_DEV_ADMIN_PASSWORD")
+        "admin_password": env("CLOUDIKE_FRONTEND_DEV_ADMIN_PASSWORD"),
     },
     "stage": {
         "api_url": env("CLOUDIKE_STAGE_API_URL"),
         "admin_login": env("CLOUDIKE_STAGE_ADMIN_LOGIN"),
-        "admin_password": env("CLOUDIKE_STAGE_ADMIN_PASSWORD")
+        "admin_password": env("CLOUDIKE_STAGE_ADMIN_PASSWORD"),
     },
     "prod-kr": {
         "api_url": env("CLOUDIKE_PROD_KR_API_URL"),
         "admin_login": env("CLOUDIKE_PROD_KR_ADMIN_LOGIN"),
-        "admin_password": env("CLOUDIKE_PROD_KR_ADMIN_PASSWORD")
-    }
+        "admin_password": env("CLOUDIKE_PROD_KR_ADMIN_PASSWORD"),
+    },
 }
 
 
@@ -46,35 +47,37 @@ class CloudikeAPI:
         self.user_password: str = env("CLOUDIKE_USER_PASSWORD")
 
         self.client: Client = client
-        self.admin_token: str = self.get_user_token(self.admin_login, self.admin_password)
-    
+        self.admin_token: str = self.get_user_token(
+            self.admin_login, self.admin_password
+        )
+
     def get_user_token(self, login: str, password: str) -> str:
         url = f"{self.api_url}/accounts/login/"
         data = {"login": login, "password": password}
 
         resp = self.client.post(url, data=data)
         return resp.json()["token"]
-    
+
     def get_random_name(self) -> str:
         return random.choice(self.user_names)
-    
+
     def get_random_email(self) -> str:
-        return f"{self.get_random_company_name}@test.com",
-    
+        return f"{self.get_random_company_name}@test.com"
+
     def get_random_company_name(self) -> str:
         return f"{self.company_prefix}{int(time())}"
-    
+
     def get_random_company_plan(self) -> str:
         return random.choice(self.company_plans)
 
     def create_company(
-            self,
-            name: str = None,
-            email: str = None,
-            password: str = None,
-            company_plan: str = None,
-            company_name: str = None,
-        ) -> dict:
+        self,
+        name: str = None,
+        email: str = None,
+        password: str = None,
+        company_plan: str = None,
+        company_name: str = None,
+    ) -> dict:
         url = f"{self.api_url}/accounts/create/"
         auth = CloudikeAuth(self.admin_token)
 
@@ -85,7 +88,7 @@ class CloudikeAPI:
             "company_name": company_name or self.get_random_company_name(),
             "company_plan": company_plan or self.get_random_company_plan(),
         }
-        
+
         resp = self.client.post(url, data=data, auth=auth)
         resp_data = resp.json()
 

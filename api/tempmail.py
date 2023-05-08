@@ -1,12 +1,12 @@
 import os
-from httpx import Client, Auth
 import random
-from time import sleep, time
 import webbrowser
 from dataclasses import dataclass
 from tempfile import NamedTemporaryFile
-from environs import Env
+from time import sleep, time
 
+from environs import Env
+from httpx import Auth, Client
 
 env = Env()
 
@@ -21,7 +21,7 @@ class TempMailAuth(Auth):
 
 
 def open_webbrowser(link: str) -> None:
-    """Open a url in the browser ignoring error messages"""
+    """Open a url in the browser ignoring error messages."""
     saverr = os.dup(2)
     os.close(2)
     os.open(os.devnull, os.O_RDWR)
@@ -34,6 +34,7 @@ def open_webbrowser(link: str) -> None:
 @dataclass
 class Message:
     """Simple data class that holds a message data."""
+
     _id: str
     _from: dict
     to: list
@@ -45,7 +46,6 @@ class Message:
     def open_web(self):
         """Open a temporary html file with the mail inside in the browser."""
         with NamedTemporaryFile(mode="w", delete=False, suffix=".html") as f:
-
             html = self.html[0].replace("\n", "<br>").replace("\r", "")
             message = f"""<html>
             <head></head>
@@ -84,13 +84,13 @@ class Mailbox:
 
         resp = self.client.post(url, json=data)
         return resp.json()["token"]
-    
+
     def get_message(self, message_id: str) -> dict:
         """Retrieve a specific message with the provided id."""
         url = f"{self.api_url}/messages/{message_id}"
         resp = self.client.get(url, auth=self.auth)
         return resp.json()
-  
+
     def get_messages(self) -> list[Message]:
         """Retrieve a list of messages currently in the mailbox."""
 
@@ -110,7 +110,7 @@ class Mailbox:
                     message_data["subject"],
                     message_data["intro"],
                     full_message["text"],
-                    full_message["html"]
+                    full_message["html"],
                 )
             )
 
@@ -131,12 +131,14 @@ class Mailbox:
         while True:
             sleep(2)
             try:
-                new_messages = list(filter(lambda m: m._id not in old_messages_ids, self.get_messages()))
+                new_messages = list(
+                    filter(lambda m: m._id not in old_messages_ids, self.get_messages())
+                )
                 if new_messages:
                     return new_messages[0]
             except Exception:
                 pass
-    
+
     def monitor_mailbox(self) -> Message:
         """Keep waiting for new messages and return when receive one."""
         while True:
@@ -149,7 +151,6 @@ class Mailbox:
         url = f"{self.api_url}/accounts/{self._id}"
         resp = self.client.delete(url, auth=self.auth)
         return resp.status_code == 204
-    
 
 
 class TempMailAPI:
@@ -169,7 +170,7 @@ class TempMailAPI:
         data = resp.json()
         domains = [item["domain"] for item in data["hydra:member"]]
         return random.choice(domains)
-    
+
     def get_random_username(self) -> str:
         return f"{self.mailbox_prefix}{int(time())}"
 
@@ -181,10 +182,7 @@ class TempMailAPI:
 
         resp = self.client.post(url, json=data)
         resp_data = resp.json()
-    
+
         return Mailbox(
-            resp_data["id"],
-            resp_data["address"],
-            self.mailbox_password,
-            self.client
+            resp_data["id"], resp_data["address"], self.mailbox_password, self.client
         )
