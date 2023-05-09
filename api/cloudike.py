@@ -22,6 +22,11 @@ CLOUDIKE_HOST_ENVS = {
         "admin_login": env("CLOUDIKE_PROD_KR_ADMIN_LOGIN"),
         "admin_password": env("CLOUDIKE_PROD_KR_ADMIN_PASSWORD"),
     },
+    "prod-net": {
+        "api_url": env("CLOUDIKE_PROD_NET_API_URL"),
+        "admin_login": env("CLOUDIKE_PROD_NET_ADMIN_LOGIN"),
+        "admin_password": env("CLOUDIKE_PROD_NET_ADMIN_PASSWORD"),
+    },
 }
 
 

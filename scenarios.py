@@ -18,17 +18,17 @@ class Scenario:
             if href and keyword in href:
                 return href
 
-    def create_company(self, host: str) -> str:
+    def create_company(self, host: str, plan: str) -> str:
         tempmail = TempMailAPI(self.client)
         mailbox = tempmail.create_mailbox()
 
         cloudike = CloudikeAPI(host, self.client)
-        company = cloudike.create_company(email=mailbox.address)
+        company = cloudike.create_company(email=mailbox.address, company_plan=plan)
 
         message = mailbox.monitor_mailbox()
         message_html = message.html[0]
 
-        confirm_link = self.parse_link(message_html, "cloudike.kr")
+        confirm_link = self.parse_link(message_html, "cloudike.")
 
         result = {
             "email_address": mailbox.address,
