@@ -18,7 +18,7 @@ class Scenario:
             if href and keyword in href:
                 return href
 
-    def create_company(self, host: str, plan: str) -> str:
+    def create_company(self, host: str, plan: str) -> dict:
         tempmail = TempMailAPI(self.client)
         mailbox = tempmail.create_mailbox()
 
