@@ -58,7 +58,7 @@ class CloudikeAPI:
 
     def get_user_token(self, login: str, password: str) -> str:
         url = f"{self.api_url}/accounts/login/"
-        data = {"login": login, "password": password}
+        data = {"login": f"email:{login}", "password": password}
 
         resp = self.client.post(url, data=data)
         return resp.json()["token"]
@@ -66,8 +66,11 @@ class CloudikeAPI:
     def get_random_name(self) -> str:
         return random.choice(self.user_names)
 
+    def get_random_group_name(self) -> str:
+        return f"Group{int(time())}"
+
     def get_random_email(self) -> str:
-        return f"{self.get_random_company_name}@test.com"
+        return f"{self.get_random_company_name()}@test.com"
 
     def get_random_company_name(self) -> str:
         return f"{self.company_prefix}{int(time())}"
@@ -87,7 +90,7 @@ class CloudikeAPI:
         auth = CloudikeAuth(self.admin_token)
 
         data = {
-            "name": name or self.get_random_company_name(),
+            "name": name or self.get_random_name(),
             "email": email or self.get_random_email(),
             "password": password or self.user_password,
             "company_name": company_name or self.get_random_company_name(),
@@ -97,5 +100,84 @@ class CloudikeAPI:
         resp = self.client.post(url, data=data, auth=auth)
         resp_data = resp.json()
 
-        data.update(company_id=resp_data["company_id"])
+        data.update(user_id=resp_data["userid"], company_id=resp_data["company_id"])
         return data
+
+    def create_user(
+        self,
+        company_id: int,
+        company_admin_email: str,
+        company_admin_password: str,
+        name: str = None,
+        email: str = None,
+        password: str = None,
+    ) -> dict:
+        company_admin_token = self.get_user_token(company_admin_email, company_admin_password)
+        url = f"{self.api_url}/accounts/company/{company_id}/create_user/"
+        auth = CloudikeAuth(company_admin_token)
+
+        data = {
+            "name": name or self.get_random_name(),
+            "login": f"email:{email or self.get_random_email()}",
+            "password": password or self.user_password,
+        }
+
+        resp = self.client.post(url, data=data, auth=auth)
+        resp_data = resp.json()
+
+        data.update(user_id=resp_data["userid"], company_id=resp_data["company_id"])
+        return data
+
+    def create_group(
+        self,
+        company_admin_email: str,
+        company_admin_password: str,
+        name: str = None,
+    ) -> dict:
+        company_admin_token = self.get_user_token(company_admin_email, company_admin_password)
+        url = f"{self.api_url}/groups/create/"
+        auth = CloudikeAuth(company_admin_token)
+
+        data = {"name": name or self.get_random_group_name()}
+
+        resp = self.client.post(url, data=data, auth=auth)
+        resp_data = resp.json()
+        return resp_data
+
+    def add_to_group(
+        self,
+        group_id: int,
+        users_ids: list[int],
+        company_admin_email: str,
+        company_admin_password: str,
+    ) -> dict:
+        company_admin_token = self.get_user_token(company_admin_email, company_admin_password)
+        url = f"{self.api_url}/groups/{group_id}/add_user/"
+        auth = CloudikeAuth(company_admin_token)
+
+        data = {"user_ids": users_ids}
+
+        resp = self.client.post(url, data=data, auth=auth)
+        resp_data = resp.json()
+        return resp_data
+
+    def get_user(self, user_id: int) -> dict:
+        url = f"{self.api_url}/admin/accounts_find_users/"
+        auth = CloudikeAuth(self.admin_token)
+
+        params = {"user_id": user_id, "limit": 1}
+
+        resp = self.client.post(url, params=params, auth=auth)
+        resp_data = resp.json()
+
+        return resp_data
+
+    def approve_user(self, approve_hash: str) -> dict:
+        url = f"{self.api_url}/accounts/approve/"
+
+        params = {"hash": approve_hash}
+
+        resp = self.client.get(url, params=params)
+        resp_data = resp.json()
+
+        return resp_data

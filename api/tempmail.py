@@ -100,7 +100,7 @@ class Mailbox:
 
         messages = []
         for message_data in resp_data["hydra:member"]:
-            sleep(1)
+            sleep(2)
             full_message = self.get_message(message_data["id"])
             messages.append(
                 Message(

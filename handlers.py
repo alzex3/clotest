@@ -96,20 +96,20 @@ async def plan_chosen(message: Message, state: FSMContext):
 
     with Client() as client:
         scenario = Scenario(client)
-        result = scenario.create_company(choosen_host, choosen_plan)
+        result = scenario.create_company_fake_email(choosen_host, choosen_plan)
 
     result_email_msg = f"""
     Mailbox / Cloudike Credentials:
 
-    Email: {result["email_address"]}
-    Password: {result["email_password"]}
+    Email: {result["company_admin_email"]}
+    Password: {result["company_admin_password"]}
     Mailbox Link: https://mail.tm/en/
     """
 
     await message.answer(text=result_email_msg)
-    await message.answer(
-        text=f"Please open this link to complete registration and log in to account: {result['confirm_link']}"
-    )
+    # await message.answer(
+    #     text=f"Please open this link to complete registration and log in to account: {result['confirm_link']}"
+    # )
 
     await state.clear()
 
